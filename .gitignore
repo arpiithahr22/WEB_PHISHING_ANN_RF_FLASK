@@ -1,0 +1,7 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+.idea/
+**/instance/database.db
+WEB_PHISHING_ANN_RF_FLASK/backend/

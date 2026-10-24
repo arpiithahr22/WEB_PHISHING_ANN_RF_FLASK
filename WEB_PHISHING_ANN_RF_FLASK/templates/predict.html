@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Predict - Phishing Detector{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-8">
+            <!-- Prediction Form -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h2 class="fw-bold mb-4">Check URL for Phishing</h2>
+                    <form id="predictionForm" method="POST">
+                        <div class="mb-3">
+                            <label for="url" class="form-label">Enter URL to Analyze</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="fas fa-link"></i></span>
+                                <input type="url" class="form-control" id="url" name="url" 
+                                       placeholder="https://example.com" required>
+                            </div>
+                            <div class="form-text">Enter the complete URL including http:// or https://</div>
+                        </div>
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary btn-lg" id="predictBtn">
+                                <i class="fas fa-search me-2"></i>Analyze URL
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Result Display -->
+            {% if prediction_result %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4">Analysis Result</h3>
+                    
+                    <!-- URL Info -->
+                    <div class="mb-4">
+                        <h5>URL Analyzed:</h5>
+                        <p class="text-break">{{ prediction_result.url }}</p>
+                    </div>
+
+                    <!-- Result Badge -->
+                    <div class="text-center mb-4">
+                        {% if prediction_result.is_phishing %}
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x me-2"></i>
+                            <h4 class="alert-heading mb-0">PHISHING DETECTED!</h4>
+                        </div>
+                        {% else %}
+                        <div class="alert alert-success">
+                            <i class="fas fa-check-circle fa-2x me-2"></i>
+                            <h4 class="alert-heading mb-0">LEGITIMATE WEBSITE</h4>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Probability Display -->
+                    <div class="row text-center mb-4">
+                        <div class="col-md-6">
+                            <div class="card {% if prediction_result.is_phishing %}border-danger{% else %}border-success{% endif %}">
+                                <div class="card-body">
+                                    <h5>Phishing Probability</h5>
+                                    <h2 class="{% if prediction_result.is_phishing %}text-danger{% else %}text-success{% endif %}">
+                                        {{ "%.2f"|format(prediction_result.prob_phishing * 100) }}%
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card {% if not prediction_result.is_phishing %}border-success{% else %}border-danger{% endif %}">
+                                <div class="card-body">
+                                    <h5>Legitimate Probability</h5>
+                                    <h2 class="{% if not prediction_result.is_phishing %}text-success{% else %}text-danger{% endif %}">
+                                        {{ "%.2f"|format(prediction_result.prob_legit * 100) }}%
+                                    </h2>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visualization -->
+                    {% if plot_url %}
+                    <div class="text-center">
+                        <img src="{{ plot_url }}" alt="Probability Chart" class="img-fluid rounded">
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Info Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">How It Works</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><i class="fas fa-random text-primary me-2"></i>Random Forest Analysis</li>
+                        <li class="mb-2"><i class="fas fa-brain text-success me-2"></i>Neural Network Processing</li>
+                        <li class="mb-2"><i class="fas fa-robot text-warning me-2"></i>Hybrid Intelligence</li>
+                        <li class="mb-2"><i class="fas fa-chart-bar text-info me-2"></i>Probability Scoring</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Tips Card -->
+            <div class="card border-0 shadow-sm">
+                <div class="col-lg-6">
+                    {% if feature_details %}
+                    <h2>Feature Details</h2>
+                    <div class="scroll-box">
+                        <ul>
+                            {% for feature, value in feature_details.items() %}
+                                <li class="feature-item">
+                                    {% if value == 1 %}
+                                    <i class="fas fa-check-circle" style="color: green;"></i>
+                                    {% elif value == -1 %}
+                                    <i class="fas fa-times-circle" style="color: red;"></i>
+                                    {% else %}
+                                    <i class="fas fa-exclamation-circle" style="color: orange;"></i>
+                                    {% endif %}
+                                    {{ feature }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('predictionForm').addEventListener('submit', function(e) {
+    const btn = document.getElementById('predictBtn');
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing...';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}
